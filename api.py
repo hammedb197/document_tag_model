@@ -38,24 +38,7 @@ app = flask.Flask(__name__)
 CORS(app)
 img, instances, classes = prepare_predictor()
 
-#@app.route("/api/score-image", methods=["POST"])
-#def process_score_image_request():
-#    image_url = request.json["imageUrl"]
-#    scoring_result = score_image(predictor, image_url)
-#
-#    instances = scoring_result["instances"]
-#    scores = instances.get_fields()["scores"].tolist()
-#    pred_classes = instances.get_fields()["pred_classes"].tolist()
-#    pred_boxes = instances.get_fields()["pred_boxes"].tensor.tolist()
-#
-#    response = {
-#        "scores": scores,
-#        "pred_classes": pred_classes,
-#        "pred_boxes" : pred_boxes,
-#        "classes": classes
-#    }
-#
-#    return jsonify(response)
+
 @app.route("/api", methods=["POST"])
 def process_score_image_request():
     pred_classes = instances.pred_classes
