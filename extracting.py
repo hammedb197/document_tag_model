@@ -1,10 +1,10 @@
 #Loading all required libraries 
-get_ipython().run_line_magic('pylab', 'inline')
+#get_ipython().run_line_magic('pylab', 'inline')
 import cv2
 import numpy as np 
 import pandas as pd
 import pytesseract
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import statistics
 
 
@@ -12,7 +12,7 @@ import statistics
 #Setting matplot figure size
 
 
-plt.rcParams['figure.figsize'] = [15, 8]
+#plt.rcParams['figure.figsize'] = [15, 8]
 
 def img_(img):
 #    img = cv2.imread(img,0)

@@ -1,10 +1,10 @@
-
 import detectron2
 from extracting import img_
 from extract_from_image import extract_from_images
 import flask
 from flask_cors import CORS
-from flask import request, jsonify, render_template, secure_filename
+from werkzeug.utils import secure_filename
+from flask import request, jsonify, render_template
 from detectron2.engine import DefaultPredictor
 from detectron2.config import get_cfg
 from detectron2.data import MetadataCatalog
@@ -16,14 +16,6 @@ from PIL import Image
 import math
 import os
 
-from neo4j import GraphDatabase
-
-def sendToNeo4j(query, **kwargs):
-    print("saving to db")
-    driver = GraphDatabase.driver("bolt://52.152.245.152:7687", auth=('neo4j', 'graph'))
-    db = driver.session()
-    consumer = db.run(query, **kwargs).consume()
-    print("data saved")
 
 def prepare_predictor(file):
     # create config
@@ -60,12 +52,11 @@ def allowed_file(filename):
 
 @app.route("/api", methods=["POST"])
 def process_score_image_request():
-    if request.methods == "POST":
+    if request.method == "POST":
         file = request.files['file']
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            # image = cv2.imread(os.path.dirname(os.path.realpath(__file__))+"/uploads/"+filename)
             img, instances, classes = prepare_predictor("/uploads/" + filename)
             table = []
             list_ = []
