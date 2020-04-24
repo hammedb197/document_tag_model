@@ -16,6 +16,14 @@ from PIL import Image
 import math
 import os
 
+from neo4j import GraphDatabase
+
+def sendToNeo4j(query, **kwargs):
+    print("saving to db")
+    driver = GraphDatabase.driver("bolt://52.152.245.152:7687", auth=('neo4j', 'graph'))
+    db = driver.session()
+    consumer = db.run(query, **kwargs).consume()
+    print("data saved")
 
 def prepare_predictor(file):
     # create config
@@ -59,7 +67,10 @@ def process_score_image_request():
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             # image = cv2.imread(os.path.dirname(os.path.realpath(__file__))+"/uploads/"+filename)
             img, instances, classes = prepare_predictor("/uploads/" + filename)
-      
+            table = []
+            list_ = []
+            text = []
+            title = []
             pred_classes = instances.pred_classes
             labels = [classes[i] for i in pred_classes]
             # print(labels)
@@ -70,28 +81,49 @@ def process_score_image_request():
                 boxes = np.asarray(boxes)
        
             for label, bbox in zip(labels, boxes):
-               
-                # getting prediction bboxes from model outputs
-            
-                x2 = math.ceil(bbox[0])
-                x1 = math.ceil(bbox[1])
-                y2 = math.ceil(bbox[2])
-                y1 = math.ceil(bbox[3])
-                crop_img = img[x1:y1,x2:y2]
-                print(len(crop_img))
-                if len(crop_img) <= 8:
-                    continue
-                if label == "table":
-                    table_ = img_(crop_img[ : , : , -1])
-                    print("----------------")
-                    print(label)
-                    print("----------------")
-                    print(table_.head(10))
-                elif label != "figure":
-                    print("----------------")
-                    print(label)
-                    print("----------------")
-                    print(extract_from_images(crop_img))
+
+               # getting prediction bboxes from model outputs
+
+               x2 = math.ceil(bbox[0])
+               x1 = math.ceil(bbox[1])
+               y2 = math.ceil(bbox[2])
+               y1 = math.ceil(bbox[3])
+               crop_img = img[x1:y1,x2:y2]
+               print(len(crop_img))
+               if len(crop_img) <= 8:
+                 continue
+             
+             
+               if label == "table":
+                 table.append(img_(crop_img[ : , : , -1]))
+                 print("----------------")
+                 print(label)
+                 print("----------------")
+
+                 # print(table_.head(10))
+               elif label == "list":
+                 print("----------------")
+                 print(label)
+                 print("----------------") 
+                 list_.append(extract_from_images(crop_img))
+
+                #  sendToNeo4j('MERGE (l:List{list:$list_})', list_=list_)
+               elif label == "title":
+                 print("----------------")
+                 print(label)
+                 print("----------------") 
+                 title.append(extract_from_images(crop_img))
+                 print(title)
+                #  sendToNeo4j(query= 'MERGE (ti:Title {title:$title})', title=title)
+               elif label != "figure":
+                 print("----------------")
+                 print(label)
+                 print("----------------") 
+                 text.append(extract_from_images(crop_img))
+                #  sendToNeo4j(query= 'MERGE (te:Text {text:$text})', text=text)
+
+            sendToNeo4j('MERGE (t:Table {table:$table}) MERGE (te:Text {text:$text}) MERGE (l:List{list:$list_}) MERGE (ti:Title {title:$title})', table=table, list_=list_, title=title, text=text)
+
        
         return render_template('index.html')
 
