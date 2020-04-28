@@ -31,7 +31,7 @@ def sendToNeo4j(query, **kwargs):
 app = flask.Flask(__name__)
 CORS(app)
 UPLOAD_FOLDER = '/uploads/'
-ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
+ALLOWED_EXTENSIONS = set(['pdf'])
 DEBUG = True
 
 app.config.from_object(__name__)
