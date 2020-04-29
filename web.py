@@ -136,7 +136,23 @@ def process_score_image_request():
                     add_content(extract_from_images(crop_img))
                     # print(page_label_count)
               print(page_label_count)
-              # sendToNeo4j('MERGE(p:Page{page:$page_label_count.keys()[0]', keys=page_label_count.keys()[0])
+              for k, v in page_label_count.items():
+                # sendToNeo4j("MERGE (d:Document)-[:Page]->(p: Page {page_num: $k})", k=k)
+                for i in v:
+                  for l, m in i.items():
+                    # print(m)
+                    if l == 'figure':
+                      sendToNeo4j("MERGE (d:Document) MERGE(d)-[:Page]->(p: Page {page_num: $page}) MERGE(p)-[:Figure_count {figure: $m}]->(f:Figure {figure: 'figure'})", m=m[0], page=k)
+                    if l == 'text':
+                      sendToNeo4j("MERGE (d:Document) MERGE(d)-[:Page]->(p: Page {page_num: $page}) MERGE(p)-[:Paragraph_count {text: $m}]->(pa:Paragraph {text: $text})", m=m[0], page=k, text=m[1])
+                    if l == 'title':
+                      sendToNeo4j("MERGE (d:Document) MERGE(d)-[:Page]->(p: Page {page_num: $page}) MERGE(p)-[:Title_count {title: $m}]->(t:Title {title: $title})", m=m[0], page=k, title=m[1])
+                    if l == 'table':
+                      sendToNeo4j("MERGE (d:Document) MERGE(d)-[:Page]->(p: Page {page_num: $page}) MERGE(p)-[:Table_count {table: $m}]->(ta:Table {table: $table})", m=m[0], page=k, table=m[1])
+                    if l == 'form':
+                       sendToNeo4j("MERGE (d:Document) MERGE(d)-[:Page]->(p: Page {page_num: $page}) MERGE(p)-[:Form_count {form: $m}]->(fo:Form {form: $form})", m=m[0], page=k, form=m[1])
+            
+                          # sendToNeo4j('MERGE(p:Page{page:$page_label_count.keys()[0]', keys=page_label_count.keys()[0])
 
        
         return render_template('index.html')
