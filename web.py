@@ -41,6 +41,9 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+@app.route('/')
+def home():
+    return render_template('index.html')
 
 @app.route("/api", methods=["POST"])
 def process_score_image_request():
@@ -86,7 +89,6 @@ def process_score_image_request():
 
               def add_content(content):
                 for i in label_count:
-                  b = []
                   for k, v in i.items():
                     if k == label:
                       v[1].append(content)
@@ -134,7 +136,6 @@ def process_score_image_request():
                     add_content(extract_from_images(crop_img))
                     # print(page_label_count)
               print(page_label_count)
-              print(page_label_count.keys()[0])
               # sendToNeo4j('MERGE(p:Page{page:$page_label_count.keys()[0]', keys=page_label_count.keys()[0])
 
        
