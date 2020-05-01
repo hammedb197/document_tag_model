@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Wiki graph</title>
+    <!-- Add default CSS reference -->
+    <link rel="stylesheet" href="https://unpkg.com/popoto/dist/popoto.min.css">
+</head>
+
+<body class="ppt-body">
+
+<section class="ppt-section-main">
+
+    <div class="ppt-container-graph">
+        <nav id="popoto-taxonomy" class="ppt-taxo-nav">
+            <!-- Label/taxonomy filter will be generated here -->
+        </nav>
+        <div id="popoto-graph" class="ppt-div-graph">
+            <!-- Graph will be generated here-->
+        </div>
+    </div>
+
+    <!-- <div id="popoto-query" class="ppt-container-query"> -->
+        <!-- Query viewer will be generated here -->
+    <!-- </div> -->
+
+    <!-- <div id="popoto-cypher" class="ppt-container-cypher"> -->
+        <!-- Cypher query viewer will be generated here -->
+    <!-- </div> -->
+
+    <div class="ppt-section-header">
+        <!-- The total results count is updated with a listener defined below -->
+        CATEGORY <span id="result-total-count" class="ppt-count"></span>
+    </div>
+
+    <div id="popoto-results" class="ppt-container-results">
+        <!-- Results will be generated here -->
+    </div>
+
+</section>
+
+
+
+    <!-- Required scripts -->
+
+    <script src="https://unpkg.com/jquery" charset="utf-8"></script>
+    <script src="https://unpkg.com/d3" charset="utf-8"></script>
+    <!-- Add Popoto script reference, will default to popoto.min.js -->
+    <script src="https://unpkg.com/popoto"></script>
+    <!-- Add Popoto script reference -->
+    <script src="https://unpkg.com/popoto/dist/popoto.js"></script>
+
+    <script>
+        popoto.rest.CYPHER_URL = "http://52.152.245.152:7474/db/data/transaction/commit";
+        popoto.rest.AUTHORIZATION = "Basic " + btoa("neo4j:graph");
+        popoto.provider.node.Provider = {
+        "HealthCare": {
+            "returnAttributes": ["category"],
+            "constraintAttribute": "category",
+            "autoExpandRelations": true // if set to true Person nodes will be automatically expanded in graph
+            },
+        "Subcategory":{
+            "returnAttributes": ["subcategory"],
+            "constraintAttribute": "subcategory"
+ 
+
+        }
+
+            };
+           /**
+                * Here a listener is used to retrieve the total results count and update the page accordingly.
+                * This listener will be called on every graph modification.
+            */
+        popoto.result.onTotalResultCount(function (count) {
+           document.getElementById("result-total-count").innerHTML = "(" + count + ")";
+           });
+
+            // Add a listener on new relation added
+        popoto.graph.on(popoto.graph.Events.GRAPH_NODE_RELATION_ADD, function (relations) {
+        var newRelation = relations[0];
+
+        // Collapse all expanded choose nodes first to avoid having value node in selection.
+        popoto.graph.node.collapseAllNode();
+
+        var linksToRemove = popoto.dataModel.links.filter(function (link) {
+            // All other links starting from same source node except new one.
+            return link !== newRelation && link.source === newRelation.source;
+        });
+
+        linksToRemove.forEach(function (link) {
+            var willChangeResults = popoto.graph.node.removeNode(link.target);
+            popoto.result.hasChanged = popoto.result.hasChanged || willChangeResults;
+        });
+
+        popoto.update();
+    });
+
+               /**
+                * The number of results returned can be changed with the following parameter.
+                * Default value is 100.
+                *
+                * Note that in this current version no pagination mechanism is available in displayed results
+                */
+        popoto.query.RESULTS_PAGE_SIZE = 100;
+        // popoto.tools.SAVE_GRAPH = true;
+
+            /**
+            * You can activate debug traces with the following properties:
+            * The value can be one of these values: DEBUG, INFO, WARN, ERROR, NONE.
+            *
+            * With INFO level all the executed cypher query can be seen in the navigator console.
+            * Default is NONE
+            */
+        popoto.logger.LEVEL = popoto.logger.LogLevels.INFO;
+          /**
+            * Start popoto.js generation.
+            * The function requires the label to use as root element in the graph.
+            */
+        popoto.start("HealthCare");
+    </script>
+
+</body>
